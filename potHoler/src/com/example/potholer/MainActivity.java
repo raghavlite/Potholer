@@ -18,13 +18,22 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -108,7 +117,7 @@ GooglePlayServicesClient.OnConnectionFailedListener {
              LocationRequest.PRIORITY_HIGH_ACCURACY);
 	 
 //	 mLocationRequest.setSmallestDisplacement(10);
-	 mLocationRequest.setInterval(1000);
+	 mLocationRequest.setInterval(10000);
 	 
 	 
  mLocationClient = new LocationClient(this, this, this);
@@ -122,7 +131,7 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 //	Location ab=Find_location();
 //	
 	
-	
+ 
 	
 	
 	}
@@ -282,7 +291,7 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 			}
 		});
 		
-		
+		 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mLocationClient.getLastLocation().getLatitude(), mLocationClient.getLastLocation().getLongitude()), 16));
 	}
 
 
@@ -338,16 +347,11 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 	
 				    try {
 				        // Add your data
-				    	String[] rv={params[0],params[1]};
-				    	
-				    	String str1 = Arrays.toString(rv);  
-				    	
-				    	
-				    	
 				    	
 				    	
 				        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-				        nameValuePairs.add(new BasicNameValuePair("coordinate", str1));
+				        nameValuePairs.add(new BasicNameValuePair("lat", params[0]));
+				        nameValuePairs.add(new BasicNameValuePair("lat", params[1]));
 				      
 				        
 				        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
@@ -379,11 +383,78 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 		    
 		    
 				@Override
-				protected void onPostExecute(String result) {
+				protected void onPostExecute(String jsonStr) {
 					
 					
 				Log.d("raghav", "done posting");
 					
+				
+				
+				
+				if (jsonStr != null) {
+				try {
+					JSONObject jsonObj = new JSONObject(jsonStr);
+					
+					// Getting JSON Array node
+					JSONArray data = jsonObj.getJSONArray("roadQualityData");
+
+					// looping through All Contacts
+					for (int i = 0; i < data.length(); i++) {
+						JSONObject c = data.getJSONObject(i);
+						
+						String lat1 = c.getString("lat");
+						double lat = Double.parseDouble(lat1);
+						String logn1 = c.getString("long");
+						double logn = Double.parseDouble(logn1);
+						String inten = c.getString("intensity");
+						
+						Log.d("extracted", ""+lat);
+						Log.d("extracted", ""+logn);
+						
+					
+						
+						CircleOptions circleOptions = new CircleOptions()
+					    .center(new LatLng(lat, logn))
+					    .radius(2)
+					    .fillColor(16711680);
+
+					// Get back the mutable Circle
+					Circle circle = googleMap.addCircle(circleOptions);
+						
+//						googleMap.addMarker(new MarkerOptions()
+//						.position(new LatLng(lat, logn))
+//						.title("Pot Hole!")
+//						.icon(BitmapDescriptorFactory
+//						.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+//						
+
+						// tmp hashmap for single contact
+//						HashMap<String, String> contact = new HashMap<String, String>();
+//
+//						// adding each child node to HashMap key => value
+//						contact.put(TAG_ID, id);
+//						contact.put(TAG_NAME, name);
+//						contact.put(TAG_EMAIL, email);
+//						contact.put(TAG_PHONE_MOBILE, mobile);
+//
+//						// adding contact to contact list
+//						contactList.add(contact);
+					}
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			} else {
+				Log.e("ServiceHandler", "Couldn't get any data from the url");
+			}
+				
+				
+				
+				
+				googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mLocationClient.getLastLocation().getLatitude(), mLocationClient.getLastLocation().getLongitude()), 18));
+				
+				
+				
+				
 					//shareRegidTask = null;
 					//Toast.makeText(getApplicationContext(), result,
 						//	Toast.LENGTH_LONG).show();
