@@ -22,6 +22,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
@@ -55,12 +56,20 @@ public class MainActivity extends FragmentActivity implements   GooglePlayServic
 GooglePlayServicesClient.OnConnectionFailedListener {
 	
 	
+	
+	ConnectionDetector cd;
+	String BASE_URL="http://192.168.1.139:7010/getRoadQuality";
 	AppLocationService appLocationService;
 	GoogleMap googleMap;
 	LocationRequest mLocationRequest;
 	Location nwLocation;
-	LocationClient mLocationClient;
+	public static LocationClient mLocationClient;
 	Context cntxt;
+	
+	Intent inSer;
+	
+	
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
@@ -69,7 +78,7 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 	setContentView(R.layout.activity_path_google_map);
 	
 	
-	
+	cd = new ConnectionDetector(getApplicationContext());
 	
 	SupportMapFragment fm = (SupportMapFragment) getSupportFragmentManager()
 			.findFragmentById(R.id.map);
@@ -130,7 +139,7 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 //	
 //	Location ab=Find_location();
 //	
-	
+	inSer=new Intent(getApplicationContext(), Accelero.class);
  
 	
 	
@@ -147,12 +156,27 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 		
 		mLocationClient.connect();
 		
+		
+		
+		
 	}
 	
 	
 	
 	
-	
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		
+		
+		 mLocationClient.disconnect();
+		
+		
+		
+		stopService(inSer);
+		
+	}
 	
 	
 	
@@ -258,6 +282,9 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 	public void onConnectionFailed(ConnectionResult result) {
 		// TODO Auto-generated method stub
 		
+		Toast.makeText(getApplicationContext(), "Failed to Connect to Internet", Toast.LENGTH_SHORT).show();
+		
+		
 	}
 
 
@@ -284,7 +311,29 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 				
 				
 				
-				new AsyncTaskActivity2().execute(""+location.getLatitude(),""+location.getLongitude());
+				
+				if (!cd.isConnectingToInternet()) {
+					// Internet Connection is not present
+					Toast.makeText(getApplicationContext(), "Not connected to internet", Toast.LENGTH_SHORT).show();
+					// stop executing code by return
+				
+					
+					
+					
+					
+				}
+				
+				else
+				{
+					
+					
+					new AsyncTaskActivity2().execute(""+location.getLatitude(),""+location.getLongitude());
+					
+				}
+				
+				
+				
+				
 				
 				
 				Log.d("Raghav","raghav");
@@ -292,6 +341,12 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 		});
 		
 		 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mLocationClient.getLastLocation().getLatitude(), mLocationClient.getLastLocation().getLongitude()), 16));
+	
+	
+		 startService(inSer);
+		 
+		 
+	
 	}
 
 
@@ -320,7 +375,7 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 
 	private class AsyncTaskActivity2 extends AsyncTask<String, Void, String> {
 
-		String url="http://192.168.1.139:7010/getRoadQuality";
+		
 		
 		
 //		Activity mActivity;
@@ -343,7 +398,7 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 				HttpResponse httpResponse = null;
 				
 				 HttpClient httpclient = new DefaultHttpClient();
-				    HttpPost httppost = new HttpPost(url);
+				    HttpPost httppost = new HttpPost(BASE_URL);
 	
 				    try {
 				        // Add your data
@@ -351,7 +406,7 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 				    	
 				        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
 				        nameValuePairs.add(new BasicNameValuePair("lat", params[0]));
-				        nameValuePairs.add(new BasicNameValuePair("lat", params[1]));
+				        nameValuePairs.add(new BasicNameValuePair("lng", params[1]));
 				      
 				        
 				        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
@@ -389,7 +444,7 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 				Log.d("raghav", "done posting");
 					
 				
-				
+				googleMap.clear();
 				
 				if (jsonStr != null) {
 				try {
