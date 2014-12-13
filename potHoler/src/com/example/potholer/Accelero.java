@@ -4,15 +4,22 @@ import com.google.android.gms.location.LocationClient;
 
 import android.app.Service;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
-public class Accelero extends Service{
+public class Accelero extends Service implements SensorEventListener{
 
 	
 	
 
+	private SensorManager senSensorManager;
+	private Sensor senAccelerometer;
+	
+	
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -36,6 +43,13 @@ public class Accelero extends Service{
 	public void onCreate() {
 		// TODO Auto-generated method stub
 		super.onCreate();
+		
+		senSensorManager = (SensorManager) getSystemService(getApplicationContext().SENSOR_SERVICE);
+	    senAccelerometer = senSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+	    senSensorManager.registerListener(this, senAccelerometer , SensorManager.SENSOR_DELAY_NORMAL);
+		
+		
 	}
 	
 	
@@ -60,7 +74,7 @@ public class Accelero extends Service{
 	
 	
 	
-	
+
 	
 	
 	
@@ -71,6 +85,11 @@ public class Accelero extends Service{
 	public void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
+		
+		 mSensorManager.unregisterListener(this);
+		
+		
+		
 	}	
 	
 	
