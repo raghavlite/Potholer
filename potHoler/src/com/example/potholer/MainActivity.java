@@ -63,8 +63,11 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 	GoogleMap googleMap;
 	LocationRequest mLocationRequest;
 	Location nwLocation;
-	public static LocationClient mLocationClient;
+	LocationClient mLocationClient;
 	Context cntxt;
+	
+	public static LatLng LC;
+	
 	
 	Intent inSer;
 	
@@ -340,7 +343,9 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 			}
 		});
 		
-		 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mLocationClient.getLastLocation().getLatitude(), mLocationClient.getLastLocation().getLongitude()), 16));
+		LC= new LatLng(mLocationClient.getLastLocation().getLatitude(), mLocationClient.getLastLocation().getLongitude());
+		 
+		 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LC, 16));
 	
 	
 		 startService(inSer);
